@@ -4,7 +4,7 @@
  * @author Leonardo Oliani Fernandes
  */
 
-package commons;
+package server.connection;
 
 public class Connection {
 

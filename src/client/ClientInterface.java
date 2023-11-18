@@ -16,4 +16,6 @@ public interface ClientInterface extends Remote {
 
     public void setClientTime(final LocalTime clientTime) throws RemoteException;
 
+    public void adjustClientTime(final LocalTime serverTime, final Integer differencesAverage) throws RemoteException;
+
 }

@@ -24,9 +24,16 @@ public class ClientInterfaceImpl extends UnicastRemoteObject implements ClientIn
 
     @Override
     public void setClientTime(final LocalTime clientTime) throws RemoteException {
-        final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
-        System.out.println("Time updated: " + dateTimeFormatter.format(clientTime));
         this.clientTime = clientTime;
+    }
+
+    @Override
+    public void adjustClientTime(final LocalTime serverTime, final Integer differencesAverage) throws RemoteException {
+        final long clientNanoTime = getClientTime().toNanoOfDay();
+        final long localTimeDifference = serverTime.toNanoOfDay() - clientNanoTime;
+        final long adjustedTime = localTimeDifference * -1 + differencesAverage + clientNanoTime;
+        setClientTime(LocalTime.ofNanoOfDay(adjustedTime));
+        System.out.println("Time updated to: " + DateTimeFormatter.ofPattern("HH:mm:ss").format(LocalTime.ofNanoOfDay(adjustedTime)));
     }
 
 }
