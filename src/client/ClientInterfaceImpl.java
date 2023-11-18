@@ -10,6 +10,7 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 
 public class ClientInterfaceImpl extends UnicastRemoteObject implements ClientInterface {
 
@@ -29,11 +30,12 @@ public class ClientInterfaceImpl extends UnicastRemoteObject implements ClientIn
 
     @Override
     public void adjustClientTime(final LocalTime serverTime, final Integer differencesAverage) throws RemoteException {
-        final long clientNanoTime = getClientTime().toNanoOfDay();
-        final long localTimeDifference = serverTime.toNanoOfDay() - clientNanoTime;
-        final long adjustedTime = localTimeDifference * -1 + differencesAverage + clientNanoTime;
-        setClientTime(LocalTime.ofNanoOfDay(adjustedTime));
-        System.out.println("Time updated to: " + DateTimeFormatter.ofPattern("HH:mm:ss").format(LocalTime.ofNanoOfDay(adjustedTime)));
+        final LocalTime clientTime = getClientTime();
+        final Integer localTimeDifference = Integer.parseInt(String.valueOf(serverTime
+                .until(clientTime, ChronoUnit.MINUTES))) * -1;
+        final LocalTime adjustedTime = clientTime.plusMinutes(localTimeDifference + differencesAverage);
+        setClientTime(adjustedTime);
+        System.out.println("Time updated to: " + DateTimeFormatter.ofPattern("HH:mm:ss").format(adjustedTime));
     }
 
 }

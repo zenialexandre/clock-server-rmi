@@ -25,11 +25,9 @@ public class ClientMain {
         try {
             System.out.println("##### Starting clients... #####\n");
             final List<ClientInterface> clientInterfacesList = new ArrayList<>();
-            createRegistryWithClient(Constants.FIRST_CLIENT_PORT, new ClientInterfaceImpl(), Arrays.asList(17, 30, 0, 0), clientInterfacesList);
-            createRegistryWithClient(Constants.SECOND_CLIENT_PORT, new ClientInterfaceImpl(), Arrays.asList(16, 45, 0, 0), clientInterfacesList);
-            clientInterfacesList.forEach(clientInterface -> {
-                System.out.println("Client " + clientInterface + " ready to receive requests.");
-            });
+            createRegistryWithClient(Constants.FIRST_CLIENT_PORT, new ClientInterfaceImpl(), Arrays.asList(17, 30, 0), clientInterfacesList);
+            createRegistryWithClient(Constants.SECOND_CLIENT_PORT, new ClientInterfaceImpl(), Arrays.asList(16, 45, 0), clientInterfacesList);
+            clientInterfacesList.forEach(clientInterface -> System.out.println("Client " + clientInterface + " ready to receive requests."));
         } catch (final Exception exception) {
             System.out.println("ERROR: " + exception.getMessage());
         }
@@ -39,7 +37,7 @@ public class ClientMain {
                                                    final List<Integer> clientTimeList, final List<ClientInterface> clientInterfaceList) {
         try {
             final Registry registry = LocateRegistry.createRegistry(clientPort);
-            clientInterface.setClientTime(LocalTime.of(clientTimeList.get(0), clientTimeList.get(1), clientTimeList.get(2), clientTimeList.get(3)));
+            clientInterface.setClientTime(LocalTime.of(clientTimeList.get(0), clientTimeList.get(1), clientTimeList.get(2)));
             clientInterfaceList.add(clientInterface);
             registry.rebind(ClientInterface.class.getSimpleName(), clientInterface);
         } catch (final Exception exception) {

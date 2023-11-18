@@ -19,17 +19,20 @@ import java.util.stream.Collectors;
 
 public class ServerMain {
 
+    protected static Integer differencesAverage;
+
     public static void main(String[] args) {
         startServerProcessFlow();
     }
 
     protected static void startServerProcessFlow() {
         System.out.println("##### Starting server... #####\n");
-        final Server server = new Server(LocalTime.of(17, 0, 0, 0), getConnectionsList());
+        final Server server = new Server(LocalTime.of(17, 0, 0), getConnectionsList());
         final List<LocalTime> clientSchedules = new ArrayList<>(server.getTimeFromClients());
         final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
         displayInitialSchedules(server, clientSchedules, dateTimeFormatter);
-        executeBerkeleyProcess(server, clientSchedules, dateTimeFormatter);
+        executeBerkeleyProcess(server, clientSchedules);
+        displayFinalSchedules(server, dateTimeFormatter);
     }
 
     protected static List<Connection> getConnectionsList() {
@@ -46,17 +49,27 @@ public class ServerMain {
                 .map(dateTimeFormatter::format).collect(Collectors.joining("\n")));
     }
 
-    protected static void executeBerkeleyProcess(@NotNull final Server server, @NotNull final List<LocalTime> clientSchedules,
-                                                 @NotNull  final DateTimeFormatter dateTimeFormatter) {
+    protected static void executeBerkeleyProcess(@NotNull final Server server, @NotNull final List<LocalTime> clientSchedules) {
         System.out.println("\n##### Starting to verify the time from clients... #####\n");
         clientSchedules.add(server.getServerTime());
-        final int differencesSum = clientSchedules.stream()
-                .map(server::getTimeDifference)
-                .mapToInt(Integer::intValue)
-                .sum();
-        final int differencesAverage = Math.abs(differencesSum / clientSchedules.size());
+        final List<Integer> timeDifferences = clientSchedules.stream().map(server::getTimeDifference).toList();
+        final int differencesSum = timeDifferences.stream().mapToInt(Integer::intValue).sum();
+        differencesAverage = Math.abs(Math.abs(differencesSum) / clientSchedules.size());
         System.out.println("Differences average: " + differencesAverage + "\n");
-        server.sendTimeDifferences(differencesAverage, dateTimeFormatter);
+        server.sendTimeDifferences(differencesAverage);
+        server.adjustServerTime(differencesAverage);
+    }
+
+    protected static void displayFinalSchedules(final Server server, final DateTimeFormatter dateTimeFormatter) {
+        System.out.println("\nFinal time from each node: \n");
+        System.out.println("Server time: " + dateTimeFormatter.format(server.getServerTime()) + "\n");
+        server.getClients().forEach(client -> {
+            try {
+                System.out.println("Client time: " + dateTimeFormatter.format(client.getClientTime()));
+            } catch (final Exception exception) {
+                throw new RuntimeException(exception);
+            }
+        });
     }
 
 }

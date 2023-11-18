@@ -9,10 +9,10 @@ package server;
 import client.ClientInterface;
 import server.connection.Connection;
 
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,8 +43,8 @@ public class Server {
     protected Registry getRmiRegistry(final Connection connection) {
         try {
             return LocateRegistry.getRegistry(connection.getIpAddress(), connection.getPort());
-        } catch (final Exception exception) {
-            throw new RuntimeException(exception);
+        } catch (final RemoteException remoteException) {
+            throw new RuntimeException(remoteException);
         }
     }
 
@@ -59,8 +59,8 @@ public class Server {
     protected LocalTime getClientTime(final ClientInterface clientInterface) {
         try {
             return clientInterface.getClientTime();
-        } catch (final Exception exception) {
-            throw new RuntimeException(exception);
+        } catch (final RemoteException remoteException) {
+            throw new RuntimeException(remoteException);
         }
     }
 
@@ -69,15 +69,19 @@ public class Server {
                 .until(clientTime, ChronoUnit.MINUTES))) * -1;
     }
 
-    protected void sendTimeDifferences(final Integer differencesAverage, final DateTimeFormatter dateTimeFormatter) {
+    protected void sendTimeDifferences(final Integer differencesAverage) {
         try {
             System.out.println("##### Starting to send differences to each client... #####\n");
             for (final ClientInterface clientInterface : getClients()) {
                 clientInterface.adjustClientTime(getServerTime(), differencesAverage);
             }
-        } catch (final Exception exception) {
-            throw new RuntimeException(exception);
+        } catch (final RemoteException remoteException) {
+            throw new RuntimeException(remoteException);
         }
+    }
+
+    protected void adjustServerTime(final Integer differencesAverage) {
+        setServerTime(getServerTime().plusMinutes(differencesAverage));
     }
 
     private void setServerTime(final LocalTime serverTime) {
